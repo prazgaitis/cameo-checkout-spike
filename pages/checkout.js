@@ -9,23 +9,6 @@ import CheckoutContext from './context/CheckoutContext';
 // recreating the `Stripe` object on every render.
 const stripePromise = loadStripe('pk_test_51IBlcUDwPZXY4fVdURCbxEHaNKVmamA3ixUCU1XTHWsQ0tZf17he2KqVZ7Xal6uEb5vziU8uCxeYafAXFEne8oIX00e3oOTpDY');
 
-const products = [
-  {
-    id: 1,
-    title: 'Basic Tee',
-    href: '#',
-    price: '$32.00',
-    color: 'Black',
-    size: 'Large',
-    imageSrc: 'https://tailwindui.com/img/ecommerce-images/checkout-page-02-product-01.jpg',
-    imageAlt: "Front of men's Basic Tee in black.",
-  },
-  // More products...
-]
-const deliveryMethods = [
-  { id: 1, title: 'Standard', turnaround: '4–10 business days', price: 'free' },
-  { id: 2, title: 'Expedited', turnaround: '24 hours', price: '$16.00' },
-]
 const postData = async (url, data = {}) => {
   const response = await fetch(url, {
     method: 'POST',
