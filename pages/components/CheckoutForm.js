@@ -4,6 +4,8 @@ import { CheckCircleIcon, TrashIcon } from '@heroicons/react/solid'
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import CheckoutContext from '../context/CheckoutContext';
 import { XCircleIcon } from '@heroicons/react/solid'
+import { formatCurrency } from './helpers'
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
@@ -29,16 +31,14 @@ function ErrorAlert(props) {
   )
 }
 
-export default function CheckoutForm(props) {
+export default function CheckoutForm() {
   const checkoutContext = useContext(CheckoutContext);
   const {
-    setSelectedDeliveryMethod,
-    selectedDeliveryMethod,
-    deliveryMethods,
+    cart,
     stripeOptions,
-    products,
     postData,
   } = checkoutContext;
+  console.log({ cart })
   const stripe = useStripe();
   const elements = useElements();
 
@@ -270,7 +270,7 @@ export default function CheckoutForm(props) {
               </div>
             </div> */}
 
-            <div className="mt-10 border-t border-gray-200 pt-10">
+            {/* <div className="mt-10 border-t border-gray-200 pt-10">
               <RadioGroup value={selectedDeliveryMethod} onChange={setSelectedDeliveryMethod}>
                 <RadioGroup.Label className="text-lg font-medium text-gray-900">Delivery method</RadioGroup.Label>
 
@@ -320,7 +320,7 @@ export default function CheckoutForm(props) {
                   ))}
                 </div>
               </RadioGroup>
-            </div>
+            </div> */}
 
             {/* Payment */}
             <div className="mt-10 border-t border-gray-200 pt-10">
@@ -335,25 +335,23 @@ export default function CheckoutForm(props) {
           <div className="mt-10 lg:mt-0">
             <h2 className="text-lg font-medium text-gray-900">Order summary</h2>
 
-            <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+            {(cart && cart.items) && <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-sm">
               <h3 className="sr-only">Items in your cart</h3>
               <ul role="list" className="divide-y divide-gray-200">
-                {products.map((product) => (
+                {cart.items.map((product) => (
                   <li key={product.id} className="flex py-6 px-4 sm:px-6">
                     <div className="flex-shrink-0">
-                      <img src={product.imageSrc} alt={product.imageAlt} className="w-20 rounded-md" />
+                      <img src={product.imageUrl} alt={'product image'} className="w-20 rounded-md" />
                     </div>
 
                     <div className="ml-6 flex-1 flex flex-col">
                       <div className="flex">
                         <div className="min-w-0 flex-1">
                           <h4 className="text-sm">
-                            <a href={product.href} className="font-medium text-gray-700 hover:text-gray-800">
+                            <a href={'#'} className="font-medium text-gray-700 hover:text-gray-800">
                               {product.title}
                             </a>
                           </h4>
-                          <p className="mt-1 text-sm text-gray-500">{product.color}</p>
-                          <p className="mt-1 text-sm text-gray-500">{product.size}</p>
                         </div>
 
                         <div className="ml-4 flex-shrink-0 flow-root">
@@ -368,7 +366,7 @@ export default function CheckoutForm(props) {
                       </div>
 
                       <div className="flex-1 pt-2 flex items-end justify-between">
-                        <p className="mt-1 text-sm font-medium text-gray-900">{product.price}</p>
+                        <p className="mt-1 text-sm font-medium text-gray-900">{formatCurrency(product.price)}</p>
 
                         <div className="ml-4">
                           <label htmlFor="quantity" className="sr-only">
@@ -377,6 +375,7 @@ export default function CheckoutForm(props) {
                           <select
                             id="quantity"
                             name="quantity"
+                            defaultValue={product.quantity}
                             className="rounded-md border border-gray-300 text-base font-medium text-gray-700 text-left shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                           >
                             <option value={1}>1</option>
@@ -397,7 +396,7 @@ export default function CheckoutForm(props) {
               <dl className="border-t border-gray-200 py-6 px-4 space-y-6 sm:px-6">
                 <div className="flex items-center justify-between">
                   <dt className="text-sm">Subtotal</dt>
-                  <dd className="text-sm font-medium text-gray-900">$64.00</dd>
+                  <dd className="text-sm font-medium text-gray-900">{formatCurrency(cart.total)}</dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-sm">Shipping</dt>
@@ -409,7 +408,7 @@ export default function CheckoutForm(props) {
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                   <dt className="text-base font-medium">Total</dt>
-                  <dd className="text-base font-medium text-gray-900">$75.52</dd>
+                  <dd className="text-base font-medium text-gray-900">{formatCurrency(cart.total)}</dd>
                 </div>
               </dl>
 
@@ -423,6 +422,7 @@ export default function CheckoutForm(props) {
                 </button>
               </div>
             </div>
+            }
           </div>
         </form>
       </div>

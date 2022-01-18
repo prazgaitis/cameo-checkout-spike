@@ -4,67 +4,47 @@ import { loadStripe } from '@stripe/stripe-js';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import CheckoutForm from './components/CheckoutForm';
 import CheckoutContext from './context/CheckoutContext';
+import { postData } from './components/helpers';
+import { useRouter } from 'next/router'
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 const stripePromise = loadStripe('pk_test_51IBlcUDwPZXY4fVdURCbxEHaNKVmamA3ixUCU1XTHWsQ0tZf17he2KqVZ7Xal6uEb5vziU8uCxeYafAXFEne8oIX00e3oOTpDY');
 
-const postData = async (url, data = {}) => {
-  const response = await fetch(url, {
-    method: 'POST',
-    mode: 'cors', // no-cors, *cors, same-origin
-    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-    credentials: 'same-origin', // include, *same-origin, omit
-    headers: {
-      'Content-Type': 'application/json'
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    redirect: 'follow', // manual, *follow, error
-    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-    body: JSON.stringify(data)
-  })
-
-  return response.json();
-}
-
-const createCart = async () => {
-  const selectedProducts = ['t-shirt', 'sunglasses'];
-  const response = await postData('/api/cart/create', {
-    cart: {
-      skus: selectedProducts,
-      currency: 'usd',
-    }
-  })
-
-  return response;
-}
-
 export default function Example() {
-  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(deliveryMethods[0])
-  const [cart, setCart] = useState({});
+  const { query } = useRouter();
+
+  const [cart, setCart] = useState(null);
   const [stripeOptions, setStripeOptions] = useState(null);
 
+
+  console.log({ query })
+
   const checkoutContext = {
-    setSelectedDeliveryMethod,
-    selectedDeliveryMethod,
-    deliveryMethods,
     stripeOptions,
-    products,
     postData,
+    cart,
+  }
+
+  const fetchCart = async () => {
+    const response = await fetch(`/api/cart/${query.cartId}`);
+    return response.json();
   }
 
   useEffect(() => {
-    createCart()
+    if (!query?.cartId) return;
+    fetchCart()
       .then(data => {
-        const { client_secret: clientSecret } = data;
-        setCart(data);
+        console.log(data.cart)
+        const { paymentIntentClientSecret: clientSecret } = data.cart;
+        setCart(data.cart);
         setStripeOptions({
           clientSecret
         })
         console.log(stripeOptions)
       })
       .catch(err => console.error(err));
-  }, []);
+  }, [query.cartId]);
 
 
   if (stripeOptions && stripeOptions.clientSecret) {

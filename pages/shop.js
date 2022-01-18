@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatCurrency } from './components/helpers';
 
 export default function Example() {
   const [products, setProducts] = useState([]);
@@ -12,12 +13,6 @@ export default function Example() {
   useEffect(() => {
     fetchProducts().then(setProducts);
   }, []);
-
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  });
 
   return (
     <div className="bg-white">
@@ -38,7 +33,7 @@ export default function Example() {
               </div>
               <div className="mt-4 flex items-center justify-between text-base font-medium text-gray-900">
                 <h3>{product.title}</h3>
-                <p>{formatter.format(product.price / 100.0)}</p>
+                <p>{formatCurrency(product.price)}</p>
               </div>
               <p className="mt-1 text-sm italic text-gray-500">{product.description}</p>
             </a>

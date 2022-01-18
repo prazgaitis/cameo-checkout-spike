@@ -12,31 +12,37 @@ datasource db {
 }
 
 model Cart {
-  id       String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  total    Int
-  currency String
-  items    CartItem[]
-  user     User       @relation(fields: [userId], references: [id])
-  userId   String     @db.ObjectId
-  Order    Order[]
+  id                        String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  total                     Int?
+  currency                  String     @default("usd")
+  items                     CartItem[]
+  user                      User       @relation(fields: [userId], references: [id])
+  userId                    String     @db.ObjectId
+  Order                     Order[]
+  paymentIntentId           String?
+  paymentIntentClientSecret String?
 }
 
 model CartItem {
-  id               String @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  cart             Cart   @relation(fields: [cartId], references: [id])
-  cartId           String @db.ObjectId
+  id               String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  cart             Cart    @relation(fields: [cartId], references: [id])
+  cartId           String  @db.ObjectId
+  variant          Variant @relation(fields: [variantId], references: [id])
+  variantId        String
   title            String
   price            Int
+  quantity         Int
   currency         String
+  imageUrl         String
   amountDiscounted Int
 }
 
 model User {
-  id     String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  email  String  @unique
-  name   String?
-  carts  Cart[]
-  orders Order[]
+  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  email String  @unique
+  name  String?
+  Cart  Cart[]
+  Order Order[]
 }
 
 model Product {
@@ -49,13 +55,14 @@ model Product {
 }
 
 model Variant {
-  id        String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  product   Product @relation(fields: [productId], references: [id])
-  productId String  @db.ObjectId
+  id        String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  product   Product    @relation(fields: [productId], references: [id])
+  productId String     @db.ObjectId
   title     String
   price     Int
   currency  String
   imageUrl  String
+  CartItem  CartItem[]
 }
 
 model Order {

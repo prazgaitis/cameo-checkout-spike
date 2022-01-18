@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-
+import ShoppingCart from '../components/ShoppingCart'
+import Navbar from '../components/Navbar'
 import { CheckIcon, StarIcon } from '@heroicons/react/solid'
 import { RadioGroup } from '@headlessui/react'
 import { ShieldCheckIcon } from '@heroicons/react/outline'
+import { postData, formatCurrency } from '../components/helpers'
 
 const breadcrumbs = [
   { id: 1, href: '#', name: 'Category' },
@@ -14,12 +16,6 @@ const deliveryMethods = [
   'standard', 'expedited'
 ]
 
-const formatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-});
-
 const reviews = { average: 4, totalCount: 1624 }
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -27,9 +23,30 @@ function classNames(...classes) {
 
 export default function Example() {
   const [product, setProduct] = useState(null);
-  const [selectedDelivery, setSelectedDelivery] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [cart, setCart] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const router = useRouter()
-  const { id } = router.query
+  const { id } = router.query;
+
+  const addToCart = async (event) => {
+    event.preventDefault();
+
+    setLoading(true);
+    const params = {
+      variantId: selectedVariant.id,
+      cartId: cart?.id,
+    };
+
+    console.log(params)
+    const res = await postData('/api/cart/add', params);
+    setCart(res.cart);
+    console.log(res.cart);
+    showCart();
+
+    setLoading(false);
+  }
 
   const fetchProduct = async (id) => {
     const response = await fetch(`/api/product/${id}`);
@@ -39,16 +56,25 @@ export default function Example() {
     return json.product || null;
   }
 
+  const showCart = () => {
+    console.log("setting cart", open ? "closed" : "open");
+    setOpen(!open);
+  }
+
   useEffect(() => {
     if (!id) return;
     fetchProduct(id).then(setProduct);
   }, [id]);
 
   if (product === null) {
-    return <div>Loading...</div>
+    return <div>
+      Loading...
+    </div>
   } else {
     return (
       <div className="bg-white">
+        <Navbar open={open} setOpen={setOpen} cart={cart} />
+        <ShoppingCart open={open} setOpen={setOpen} cart={cart} />
         <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-2 lg:gap-x-8">
           {/* Product details */}
           <div className="lg:max-w-lg lg:self-end">
@@ -87,7 +113,7 @@ export default function Example() {
               </h2>
 
               <div className="flex items-center">
-                <p className="text-lg text-gray-900 sm:text-xl">{formatter.format(product.price / 100.0)}</p>
+                <p className="text-lg text-gray-900 sm:text-xl">{formatCurrency(product.price, 'usd')}</p>
 
                 <div className="ml-4 pl-4 border-l border-gray-300">
                   <h2 className="sr-only">Reviews</h2>
@@ -140,7 +166,7 @@ export default function Example() {
               <form>
                 <div className="sm:flex sm:justify-between">
                   {/* Size selector */}
-                  <RadioGroup value={selectedDelivery} onChange={setSelectedDelivery}>
+                  <RadioGroup value={selectedVariant} onChange={setSelectedVariant}>
                     <RadioGroup.Label className="block text-sm font-medium text-gray-700">Delivery</RadioGroup.Label>
                     <div className="mt-1 grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {product.variants.map((variant) => (
@@ -163,6 +189,9 @@ export default function Example() {
                               <RadioGroup.Description as="p" className="mt-1 text-sm text-gray-500">
                                 {variant.title}
                               </RadioGroup.Description>
+                              <RadioGroup.Label as="p" className="text-base font-medium text-gray-900">
+                                {formatCurrency(variant.price, 'usd')}
+                              </RadioGroup.Label>
                               <div
                                 className={classNames(
                                   active ? 'border' : 'border-2',
@@ -180,11 +209,12 @@ export default function Example() {
                 </div>
                 <div className="mt-10">
                   <button
-                    disabled={!selectedDelivery}
+                    onClick={addToCart}
+                    disabled={!selectedVariant}
                     type="submit"
                     className="w-full bg-indigo-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-indigo-500"
                   >
-                    Add to cart
+                    {loading ? "Loading..." : "Add to cart"}
                   </button>
                 </div>
                 <div className="mt-6 text-center">

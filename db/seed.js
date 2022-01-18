@@ -69,13 +69,15 @@ async function main() {
   console.log(products);
 
   // delete everything
+  await prisma.cartItem.deleteMany({});
+  await prisma.cart.deleteMany({});
   await prisma.variant.deleteMany({});
   await prisma.product.deleteMany({});
   await prisma.user.deleteMany({});
 
   await prisma.user.create({
     data: {
-      email: 'prazgaitis@gmail.com',
+      email: 'shopper@example.com',
       name: 'Paul',
     }
   });
